@@ -19,6 +19,7 @@ use params::{FromValue, Params};
 use errors::*;
 use network::{NetworkCommand, NetworkCommandResponse};
 use exit::{exit, ExitResult};
+use config::Config;
 
 struct RequestSharedState {
     gateway: Ipv4Addr,
@@ -111,10 +112,11 @@ impl AfterMiddleware for RedirectMiddleware {
             let request_state = get_request_state!(req);
             format!("{}", request_state.gateway)
         };
+        let listening_port = config.listening_port;
 
         if let Some(host) = req.headers.get::<headers::Host>() {
             if host.hostname != gateway {
-                let url = Url::parse(&format!("http://{}/", gateway)).unwrap();
+                let url = Url::parse(&format!("http://{}:{}/", gateway, listening_port)).unwrap();
                 return Ok(Response::with((status::Found, Redirect(url))));
             }
         }
